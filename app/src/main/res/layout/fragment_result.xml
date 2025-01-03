@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Оригинальное изображение"
+        android:layout_marginBottom="8dp" />
+
+    <ImageView
+        android:id="@+id/img_original"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginBottom="8dp"
+        android:scaleType="centerCrop"
+        android:contentDescription="Original image" />
+
+    <TextView
+        android:id="@+id/text_orig_size"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="Размер файла: " />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Сжатое изображение"
+        android:layout_marginBottom="8dp" />
+
+    <ImageView
+        android:id="@+id/img_compressed"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginBottom="8dp"
+        android:scaleType="centerCrop"
+        android:contentDescription="Compressed image" />
+
+    <TextView
+        android:id="@+id/text_compres_size"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Размер файла: " />
+</LinearLayout>

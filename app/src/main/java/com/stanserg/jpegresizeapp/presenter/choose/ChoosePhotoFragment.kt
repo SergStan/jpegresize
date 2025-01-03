@@ -1,7 +1,6 @@
 package com.stanserg.jpegresizeapp.presenter.choose
 
 import android.app.Activity
-import androidx.fragment.app.viewModels
 import android.content.Intent
 import android.os.Bundle
 import android.provider.MediaStore
@@ -13,10 +12,12 @@ import com.stanserg.jpegresizeapp.R
 import com.stanserg.jpegresizeapp.presenter.MainActivity
 import com.stanserg.jpegresizeapp.presenter.compress.CompressPhotoFragment
 import com.stanserg.jpegresizeapp.utils.collectWhenStarted
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ChoosePhotoFragment : Fragment(R.layout.fragment_choose) {
 
-    private val viewModel: ChoosePhotoViewModel by viewModels()
+    private val viewModel: ChoosePhotoViewModel by viewModel()
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 

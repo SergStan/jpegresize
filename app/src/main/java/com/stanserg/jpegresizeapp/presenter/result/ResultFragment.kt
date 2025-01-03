@@ -6,57 +6,14 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import com.stanserg.jpegresizeapp.R
-import com.stanserg.jpegresizeapp.model.CalculateFileSizeUseCase
-import com.stanserg.jpegresizeapp.model.CompressPhotoUseCase
-import com.stanserg.jpegresizeapp.model.LoadImageUseCase
-import com.stanserg.jpegresizeapp.presenter.ViewModelFactory
-import com.stanserg.jpegresizeapp.utils.calculateFileSize
 import com.stanserg.jpegresizeapp.utils.collectWhenStarted
-import com.stanserg.jpegresizeapp.utils.compressImage
-import com.stanserg.jpegresizeapp.utils.loadImage
 import java.io.File
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ResultFragment: Fragment(R.layout.fragment_result) {
 
-    private val viewModel: ResultViewModel by viewModels {
-        ViewModelFactory(
-            compressPhotoUseCase = CompressPhotoUseCase { uri, quality ->
-                compressImage(
-                    inputStream = activity?.contentResolver?.openInputStream(uri)!!,
-                    quality = quality,
-                    tempFileProvider = { File.createTempFile("compressed_", ".jpg", File("/path/to/cache")) }
-                )
-            },
-            loadImageUseCase = LoadImageUseCase { source ->
-                when (source) {
-                    is Uri -> loadImage(activity?.contentResolver?.openInputStream(source)!!)
-                    is File -> loadImage(source.inputStream())
-                    else -> throw IllegalArgumentException("Unsupported source type")
-                }
-            },
-            calculateFileSizeUseCase = CalculateFileSizeUseCase { source ->
-                when (source) {
-                    is Uri -> {
-                        val cursor =
-                            activity?.contentResolver?.query(source, null, null, null, null)
-                        val sizeIndex =
-                            cursor?.getColumnIndex(android.provider.OpenableColumns.SIZE) ?: -1
-                        val size = if (cursor?.moveToFirst() == true && sizeIndex != -1) {
-                            cursor.getLong(sizeIndex)
-                        } else {
-                            0L
-                        }
-                        cursor?.close()
-                        size
-                    }
-
-                    is File -> calculateFileSize(source)
-                    else -> throw IllegalArgumentException("Unsupported source type")
-                }
-            }        )
-    }
+    private val viewModel: ResultViewModel by viewModel()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -102,5 +59,4 @@ class ResultFragment: Fragment(R.layout.fragment_result) {
             return fragment
         }
     }
-
 }

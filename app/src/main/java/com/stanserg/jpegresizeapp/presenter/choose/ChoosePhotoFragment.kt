@@ -13,7 +13,6 @@ import com.stanserg.jpegresizeapp.presenter.MainActivity
 import com.stanserg.jpegresizeapp.presenter.compress.CompressPhotoFragment
 import com.stanserg.jpegresizeapp.utils.collectWhenStarted
 import org.koin.androidx.viewmodel.ext.android.viewModel
-
 class ChoosePhotoFragment : Fragment(R.layout.fragment_choose) {
 
     private val viewModel: ChoosePhotoViewModel by viewModel()
@@ -30,18 +29,15 @@ class ChoosePhotoFragment : Fragment(R.layout.fragment_choose) {
             startActivityForResult(intent, REQUEST_CODE_PICK_PHOTO)
         }
 
-        viewModel.selectedPhotoUri.collectWhenStarted(viewLifecycleOwner) { uri ->
-            if (uri != null) {
-                imagePreview.setImageURI(uri)
-                nextButton.isEnabled = true
-            }
+        viewModel.uiState.collectWhenStarted(viewLifecycleOwner) { state ->
+            imagePreview.setImageURI(state.selectedPhotoUri)
+            nextButton.isEnabled = state.isNextEnabled
         }
 
         nextButton.setOnClickListener {
-            val uri = viewModel.selectedPhotoUri.value
-            uri?.let {
+            viewModel.uiState.value.selectedPhotoUri?.let { uri ->
                 (activity as MainActivity).navigateToFragment(
-                    CompressPhotoFragment.newInstance(it)
+                    CompressPhotoFragment.newInstance(uri)
                 )
             }
         }

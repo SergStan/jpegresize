@@ -5,13 +5,13 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.stanserg.jpegresizeapp.R
 import com.stanserg.jpegresizeapp.utils.collectWhenStarted
 import java.io.File
 import org.koin.androidx.viewmodel.ext.android.viewModel
-
-class ResultFragment: Fragment(R.layout.fragment_result) {
+class ResultFragment : Fragment(R.layout.fragment_result) {
 
     private val viewModel: ResultViewModel by viewModel()
 
@@ -30,18 +30,19 @@ class ResultFragment: Fragment(R.layout.fragment_result) {
             viewModel.loadImages(originalUri, compressedFile)
         }
 
-        viewModel.originalBitmap.collectWhenStarted(viewLifecycleOwner) { bitmap ->
-            bitmap?.let { originalImageView.setImageBitmap(it) }
-        }
+        viewModel.uiState.collectWhenStarted(viewLifecycleOwner) { state ->
+            if (state.isLoading) {
+                originalSizeTextView.text = "Загрузка..."
+                compressedSizeTextView.text = "Загрузка..."
+            } else {
+                originalImageView.setImageBitmap(state.originalBitmap)
+                compressedImageView.setImageBitmap(state.compressedBitmap)
+                originalSizeTextView.text = state.originalSizeText
+                compressedSizeTextView.text = state.compressedSizeText
+            }
 
-        viewModel.compressedBitmap.collectWhenStarted(viewLifecycleOwner) { bitmap ->
-            bitmap?.let { compressedImageView.setImageBitmap(it) }
-        }
-
-        viewModel.fileSizes.collectWhenStarted(viewLifecycleOwner) { sizes ->
-            sizes?.let {
-                originalSizeTextView.text = it.first
-                compressedSizeTextView.text = it.second
+            state.errorMessage?.let {
+                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
             }
         }
     }

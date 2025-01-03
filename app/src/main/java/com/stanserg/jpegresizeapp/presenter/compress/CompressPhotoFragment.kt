@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.stanserg.jpegresizeapp.R
 import com.stanserg.jpegresizeapp.presenter.MainActivity
@@ -14,11 +15,9 @@ import com.stanserg.jpegresizeapp.presenter.result.ResultFragment
 import com.stanserg.jpegresizeapp.utils.collectWhenStarted
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-
 class CompressPhotoFragment : Fragment(R.layout.fragment_compress) {
 
     private val viewModel: CompressPhotoViewModel by viewModel()
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -40,12 +39,17 @@ class CompressPhotoFragment : Fragment(R.layout.fragment_compress) {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        viewModel.previewBitmap.collectWhenStarted(viewLifecycleOwner) { bitmap ->
-            bitmap?.let { imagePreview.setImageBitmap(it) }
-        }
+        viewModel.uiState.collectWhenStarted(viewLifecycleOwner) { state ->
+            if (state.isLoading) {
+                infoTextView.text = "Загрузка..."
+            } else {
+                state.previewBitmap?.let { imagePreview.setImageBitmap(it) }
+                infoTextView.text = state.fileSizeInfo
+            }
 
-        viewModel.fileSizeInfo.collectWhenStarted(viewLifecycleOwner) { info ->
-            infoTextView.text = info
+            state.errorMessage?.let {
+                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+            }
         }
 
         nextButton.setOnClickListener {

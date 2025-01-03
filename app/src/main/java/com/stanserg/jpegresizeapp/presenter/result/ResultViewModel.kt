@@ -1,41 +1,56 @@
 package com.stanserg.jpegresizeapp.presenter.result
-
-import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.stanserg.jpegresizeapp.model.CalculateFileSizeUseCase
-import com.stanserg.jpegresizeapp.model.LoadImageUseCase
+import com.stanserg.jpegresizeapp.model.usecases.CalculateFileSizeUseCase
+import com.stanserg.jpegresizeapp.model.usecases.LoadImageUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class ResultViewModel(
     private val loadImageUseCase: LoadImageUseCase,
     private val calculateFileSizeUseCase: CalculateFileSizeUseCase
 ) : ViewModel() {
-    private val _originalBitmap = MutableStateFlow<Bitmap?>(null)
-    val originalBitmap: StateFlow<Bitmap?> get() = _originalBitmap
 
-    private val _compressedBitmap = MutableStateFlow<Bitmap?>(null)
-    val compressedBitmap: StateFlow<Bitmap?> get() = _compressedBitmap
-
-    private val _fileSizes = MutableStateFlow<Pair<String, String>?>(null)
-    val fileSizes: StateFlow<Pair<String, String>?> get() = _fileSizes
+    private val _uiState = MutableStateFlow(ResultUiState())
+    val uiState: StateFlow<ResultUiState> get() = _uiState
 
     fun loadImages(originalUri: Uri, compressedFile: File) {
         viewModelScope.launch {
-            val originalBitmap = loadImageUseCase.execute(originalUri)
-            val compressedBitmap = loadImageUseCase.execute(compressedFile)
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
 
-            _originalBitmap.value = originalBitmap
-            _compressedBitmap.value = compressedBitmap
+            try {
+                val originalBitmap =  withContext(Dispatchers.IO) {
+                    loadImageUseCase.execute(originalUri).getOrThrow()
+                }
+                val compressedBitmap = withContext(Dispatchers.IO) {
+                    loadImageUseCase.execute(compressedFile).getOrThrow()
+                }
 
-            val originalSize = calculateFileSizeUseCase.execute(originalUri)
-            val compressedSize = calculateFileSizeUseCase.execute(compressedFile)
+                val originalSize = withContext(Dispatchers.IO) {
+                    calculateFileSizeUseCase.execute(originalUri).getOrThrow()
+                }
+                val compressedSize = withContext(Dispatchers.IO) {
+                    calculateFileSizeUseCase.execute(compressedFile).getOrThrow()
+                }
 
-            _fileSizes.value = Pair("Оригинал: $originalSize", "Сжатое: $compressedSize")
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    originalBitmap = originalBitmap,
+                    compressedBitmap = compressedBitmap,
+                    originalSizeText = "Оригинал: $originalSize",
+                    compressedSizeText = "Сжатое: $compressedSize"
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = e.message ?: "Ошибка загрузки данных"
+                )
+            }
         }
     }
 }

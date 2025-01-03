@@ -1,6 +1,7 @@
 package com.stanserg.jpegresizeapp.di
 
 import android.content.ContentResolver
+import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import com.stanserg.jpegresizeapp.model.CalculateFileSizeUseCase
@@ -9,10 +10,12 @@ import com.stanserg.jpegresizeapp.model.LoadImageUseCase
 import com.stanserg.jpegresizeapp.utils.calculateFileSize
 import com.stanserg.jpegresizeapp.utils.compressImage
 import com.stanserg.jpegresizeapp.utils.loadImage
+import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import java.io.File
 
 val useCaseModule = module {
+
 
     // Provide CompressPhotoUseCase
     single {
@@ -64,9 +67,17 @@ val useCaseModule = module {
         }
     }
 
-    // Provide File (cache directory)
-    single<File> { android.os.Environment.getExternalStorageDirectory() }
+    fun provideCacheDirectory(context: Context): File {
+    val cacheDir = context.cacheDir
+    if (!cacheDir.exists()) {
+        cacheDir.mkdirs()
+    }
+    return cacheDir
+}
+
+    // Provide Cache Directory
+    single<File> { provideCacheDirectory(get()) }
 
     // Provide ContentResolver
-    single<ContentResolver> { android.content.ContextWrapper(android.app.Application()).contentResolver }
+    single { androidContext().contentResolver }
 }

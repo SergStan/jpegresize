@@ -1,6 +1,5 @@
 package com.stanserg.jpegresizeapp.data
 
-import android.graphics.Bitmap
 import android.net.Uri
 import com.stanserg.jpegresizeapp.model.interfaces.LocalDataSource
 import com.stanserg.jpegresizeapp.model.interfaces.PhotoRepository
@@ -14,11 +13,11 @@ class PhotoRepositoryImpl(
         return localDataSource.compressPhoto(uri, quality)
     }
 
-    override suspend fun loadImage(any: Any): Bitmap {
-        return localDataSource.loadImage(any)
+    override suspend fun loadImage(file: File): File {
+        return localDataSource.loadImage(file)
     }
 
-    override suspend fun calculateFileSize(any: Any): Long {
-        return localDataSource.calculateFileSize(any)
+    override suspend fun calculateFileSize(file: File): Long {
+        return localDataSource.calculateFileSize(file)
     }
 }

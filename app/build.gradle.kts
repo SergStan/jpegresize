@@ -33,9 +33,15 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    viewBinding{
+        enable = true
+    }
 }
 
 dependencies {
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")
     implementation ("io.insert-koin:koin-android:3.5.0")
     implementation ("io.insert-koin:koin-core:3.5.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.0")

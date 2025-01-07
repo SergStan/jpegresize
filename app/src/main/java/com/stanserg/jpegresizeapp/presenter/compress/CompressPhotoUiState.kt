@@ -1,10 +1,10 @@
 package com.stanserg.jpegresizeapp.presenter.compress
 
-import android.graphics.Bitmap
+import java.io.File
 
 data class CompressPhotoUiState(
     val isLoading: Boolean = false,
-    val previewBitmap: Bitmap? = null,
-    val fileSizeInfo: String = "",
+    val previewFile: File? = null,
+    val fileSizeInfo: Long = 0L,
     val errorMessage: String? = null
 )

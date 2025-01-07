@@ -4,7 +4,6 @@ import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.provider.OpenableColumns
 import com.stanserg.jpegresizeapp.model.interfaces.LocalDataSource
 import java.io.File
 import java.io.FileOutputStream
@@ -15,55 +14,67 @@ class LocalDataSourceImpl(
 ) : LocalDataSource {
 
     override suspend fun compressPhoto(uri: Uri, quality: Int): File {
-        val inputStream = contentResolver.openInputStream(uri) ?: throw NullPointerException()
-        val bitmap = BitmapFactory.decodeStream(inputStream)
-        val outputFile = tempFileProvider()
-        FileOutputStream(outputFile).use { outputStream ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+        return try {
+            val bitmap = decodeBitmapWithSampleSize(uri, 1080, 1080)
+                ?: throw IllegalStateException("Не удалось декодировать Bitmap из URI: $uri")
+
+            val compressedFile = tempFileProvider()
+            FileOutputStream(compressedFile).use { outputStream ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+            }
+            bitmap.recycle()
+            compressedFile
+        } catch (e: Exception) {
+            throw IllegalStateException("Ошибка при сжатии фото: ${e.message}", e)
         }
-        return outputFile
     }
+
+    override suspend fun loadImage(file: File): File {
+        return file
+    }
+
+    override suspend fun calculateFileSize(file: File): Long {
+        return file.length()
+    }
+
 
     private fun tempFileProvider(): File {
         return File.createTempFile("compressed_", ".jpg", cacheDirectory)
     }
 
-    override suspend fun loadImage(any: Any): Bitmap {
-        return when (any) {
-            is Uri -> {
-                val inputStream = contentResolver.openInputStream(any)
-                BitmapFactory.decodeStream(inputStream)
-            }
+    private fun decodeBitmapWithSampleSize(uri: Uri, reqWidth: Int, reqHeight: Int): Bitmap? {
+        val options = BitmapFactory.Options()
+        options.inJustDecodeBounds = true
 
-            is File -> {
-                val inputStream =  any.inputStream()
-                BitmapFactory.decodeStream(inputStream)
-            }
-            else -> throw IllegalArgumentException("Unsupported source type")
+        contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, options)
+        }
+
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight)
+        options.inJustDecodeBounds = false
+
+        return contentResolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, options)
         }
     }
 
-    override suspend fun calculateFileSize(any: Any): Long {
-        return try {
-            when (any) {
-                is Uri -> {
-                    val cursor = contentResolver.query(any, null, null, null, null)
-                    val sizeIndex = cursor?.getColumnIndex(OpenableColumns.SIZE) ?: -1
-                    val size = if (cursor?.moveToFirst() == true && sizeIndex != -1) {
-                        cursor.getLong(sizeIndex)
-                    } else {
-                        0L
-                    }
-                    cursor?.close()
-                    size
-                }
+    private fun calculateInSampleSize(
+        options: BitmapFactory.Options,
+        reqWidth: Int,
+        reqHeight: Int
+    ): Int {
+        val height = options.outHeight
+        val width = options.outWidth
+        var inSampleSize = 1
 
-                is File -> any.length()
-                else -> 0
+        if (height > reqHeight || width > reqWidth) {
+            val halfHeight = height / 2
+            val halfWidth = width / 2
+            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
             }
-        } catch (e: Exception) {
-            0
         }
+        return inSampleSize
     }
 }
 

@@ -19,20 +19,20 @@ class ResultViewModel(
     private val _uiState = MutableStateFlow(ResultUiState())
     val uiState: StateFlow<ResultUiState> get() = _uiState
 
-    fun loadImages(originalUri: Uri, compressedFile: File) {
+    fun loadImages(originalFile: File, compressedFile: File) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
 
             try {
-                val originalBitmap =  withContext(Dispatchers.IO) {
-                    loadImageUseCase.execute(originalUri).getOrThrow()
+                val originalFile =  withContext(Dispatchers.IO) {
+                    loadImageUseCase.execute(originalFile).getOrThrow()
                 }
-                val compressedBitmap = withContext(Dispatchers.IO) {
+                val compressedFile = withContext(Dispatchers.IO) {
                     loadImageUseCase.execute(compressedFile).getOrThrow()
                 }
 
                 val originalSize = withContext(Dispatchers.IO) {
-                    calculateFileSizeUseCase.execute(originalUri).getOrThrow()
+                    calculateFileSizeUseCase.execute(originalFile).getOrThrow()
                 }
                 val compressedSize = withContext(Dispatchers.IO) {
                     calculateFileSizeUseCase.execute(compressedFile).getOrThrow()
@@ -40,8 +40,8 @@ class ResultViewModel(
 
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    originalBitmap = originalBitmap,
-                    compressedBitmap = compressedBitmap,
+                    originalBitmap = originalFile,
+                    compressedBitmap = compressedFile,
                     originalSizeText = "Оригинал: $originalSize",
                     compressedSizeText = "Сжатое: $compressedSize"
                 )

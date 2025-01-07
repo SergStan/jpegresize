@@ -1,13 +1,13 @@
 package com.stanserg.jpegresizeapp.model.usecases
 
-import android.graphics.Bitmap
 import com.stanserg.jpegresizeapp.model.interfaces.PhotoRepository
+import java.io.File
 
-class LoadImageUseCase(    private val repository: PhotoRepository
+class LoadImageUseCase(private val repository: PhotoRepository
 ) {
-    suspend fun execute(any: Any): Result<Bitmap> {
+    suspend fun execute(fileIn: File): Result<File> {
         return try {
-            val file = repository.loadImage(any)
+            val file = repository.loadImage(fileIn)
             Result.success(file)
         } catch (e: Exception) {
             Result.failure(e)

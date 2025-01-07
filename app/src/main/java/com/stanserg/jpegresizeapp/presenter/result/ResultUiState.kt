@@ -1,10 +1,10 @@
 package com.stanserg.jpegresizeapp.presenter.result
 
-import android.graphics.Bitmap
+import java.io.File
 
 data class ResultUiState(
-    val originalBitmap: Bitmap? = null,
-    val compressedBitmap: Bitmap? = null,
+    val originalBitmap: File? = null,
+    val compressedBitmap: File? = null,
     val originalSizeText: String = "",
     val compressedSizeText: String = "",
     val isLoading: Boolean = false,

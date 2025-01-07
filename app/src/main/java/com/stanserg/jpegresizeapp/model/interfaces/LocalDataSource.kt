@@ -7,7 +7,7 @@ import java.io.File
 interface LocalDataSource {
 
     suspend fun compressPhoto(uri: Uri, quality: Int): File
-    suspend fun loadImage(any: Any): Bitmap
-    suspend fun calculateFileSize(uri: Any): Long
+    suspend fun loadImage(file: File): File
+    suspend fun calculateFileSize(uri: File): Long
 
 }
